@@ -1,47 +1,54 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>motion-orientation</ion-title>
+    <ion-title>Dice Roller</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  X: {{myAccel?.x}}
-  <br />
-  Y: {{myAccel?.y}}
-  <br />
-  Z: {{myAccel?.z}}
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="dice-wrapper">
+    <div class="dice-stage">
+      <!-- The dice itself: .rolling triggers the shake + rotate animation -->
+      <div class="dice" [class.rolling]="rolling()">
+        @for (i of cells; track i) {
+          <span class="cell">
+            @if (isPip(i)) {
+              <span class="pip"></span>
+            }
+          </span>
+        }
+      </div>
 
-  <div
-    style="
-      width: 100%;
-      height: 50vh;
-      background: rgb(233, 233, 233);
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    "
-  >
-    <div
-      style="
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: orange;
-        transition: transform 0.1s linear;
-      "
-      [style.transform]="'translate('+(myAccel?.x || 0)*-50+'px, '+(myAccel?.y||0)*50 +'px)'"
-    ></div>
+      <h1 class="result-text">
+        @if (rolling()) {
+          Rolling...
+        } @else if (hasRolled()) {
+          You rolled a {{ result() }}
+        } @else {
+          Shake your phone sideways
+        }
+      </h1>
+
+      @if (!hasRolled() && permission() === 'granted') {
+        <p class="hint">Move the device left and right along the X-axis to roll.</p>
+      }
+    </div>
+
+    <!-- Motion permission (iOS Safari / browsers only). This is not a roll button. -->
+    @if (permission() === 'prompt') {
+      <ion-button expand="block" color="secondary" fill="outline" (click)="requestMotionPermission()">
+        Enable Motion Sensor
+      </ion-button>
+    }
+    @if (permission() === 'denied') {
+      <p class="warning">
+        Motion access was denied, so the dice cannot roll.
+        On iOS, close the tab and reopen the page, or check Settings → Safari → Motion &amp; Orientation Access.
+      </p>
+    }
+
+    <!-- Debug info: X axis only -->
+    <div class="debug">
+      X: {{ xValue() | number: '1.2-2' }}
+    </div>
   </div>
-
-  <div
-    [style.backgroundColor]="color()"
-    style="width: 100%; height: 10vh"
-  ></div>
-
-  Alpha: {{alpha}} <br />
-  Beta: {{beta}} <br />
-  Gamma: {{gamma}}
-  <br />
-  Pose: {{pose}}
 </ion-content>
